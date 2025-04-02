@@ -1,0 +1,9 @@
+[run]
+source =
+    pkg/
+
+[report]
+omit =
+    pkg/**/test_*.py
+    pkg/__init__.py
+    pkg/**/__init__.py

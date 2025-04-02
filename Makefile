@@ -16,4 +16,8 @@ release-requirements:
 	echo "# $(PYTHON_VERSION)" > $(REQUIREMENT_FILE)
 	pip list --format=freeze >> $(REQUIREMENT_FILE)
 
+.PHONY: test
+test:
+	coverage run --rcfile=./.coveragerc -m pytest
+	coverage report --rcfile=./.coveragerc
 
