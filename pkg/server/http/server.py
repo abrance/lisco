@@ -34,13 +34,19 @@ class WebServerLoader:
     def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
-        self.fastapi_app = FastAPI()
+        self.root_app = FastAPI()
         self.uvicorn_server = None
-        self.app_servers = {}
+        self.sub_apps = {}
+
+    def mount_sub_app(self):
+        for app_server in self.sub_apps.values():
+            self.root_app.mount(app_server.base_url, app_server.get_app())
 
     def start(self):
+        self.mount_sub_app()
+
         # 启动 Uvicorn 服务器
-        config = uvicorn.Config(self.fastapi_app, host=self.host, port=self.port)
+        config = uvicorn.Config(self.root_app, host=self.host, port=self.port)
         self.uvicorn_server = uvicorn.Server(config)
         self.uvicorn_server.run()
 
@@ -54,7 +60,7 @@ class WebServerLoader:
         获取 fastapp , 具体路由不再 WebServer 中管理
         :return:
         """
-        return self.fastapi_app
+        return self.root_app
 
     def register_server(self, app_server_list: List[AppServer]):
         """
@@ -63,6 +69,7 @@ class WebServerLoader:
         :return:
         """
         app_server_dc = {app.base_url: app for app in app_server_list}
-        self.app_servers.update(app_server_dc)
+        self.sub_apps.update(app_server_dc)
+
 
 
