@@ -1,12 +1,19 @@
-import os
+from enum import Enum
+
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import Tool
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-# 设置阿里云环境变量（需替换为你的凭证）
-apikey = os.getenv("DASHSCOPE_API_KEY", "sk-e1b527930ae64adcbffba20d07bdd83e")
+from pkg.util.config.config import config_manager
+
+
+class ModelEnum(str, Enum):
+    qwen_turbo = "qwen-turbo"
+    qwen_plus = "qwen-plus"
+
+
 
 # 定义工具（使用 Tool 类显式定义）
 def magic_function(input: int) -> int:
@@ -30,9 +37,9 @@ tools = [
 ]
 
 chatLLM = ChatOpenAI(
-    api_key=apikey,
+    api_key=config_manager.get_config().llm.api_key,
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-    model="qwen-plus",  # 此处以qwen-plus为例，您可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+    model=ModelEnum.qwen_turbo.value,
 )
 
 # 定义提示模板（结构需符合 LangChain 0.3 的要求）
@@ -55,6 +62,6 @@ agent = create_tool_calling_agent(
 agent_executor = AgentExecutor(
     agent=agent,
     tools=tools,
-    verbose=True  # 显示详细执行过程
+    verbose=True
 )
 

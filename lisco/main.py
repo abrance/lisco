@@ -1,9 +1,11 @@
 from pkg.app.metric import metric_app_server
 from pkg.server.http.server import WebServerLoader
+from pkg.util.config.config import config_manager
 
 
 def init_webserver():
-    webserver = WebServerLoader(host='127.0.0.1', port=18000)
+    config = config_manager.get_config()
+    webserver = WebServerLoader(host=config.server.host, port=config.server.port)
     webserver.register_server([metric_app_server])
     webserver.start()
 
