@@ -1,3 +1,4 @@
+from pkg.app.ai_agent import ai_agent_app_server
 from pkg.app.metric import metric_app_server
 from pkg.server.http.server import WebServerLoader
 from pkg.util.config.config import config_manager
@@ -6,7 +7,7 @@ from pkg.util.config.config import config_manager
 def init_webserver():
     config = config_manager.get_config()
     webserver = WebServerLoader(host=config.server.host, port=config.server.port)
-    webserver.register_server([metric_app_server])
+    webserver.register_server([metric_app_server, ai_agent_app_server])
     webserver.start()
 
 
