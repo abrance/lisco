@@ -1,19 +1,20 @@
 from enum import Enum
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_core.tools import Tool, StructuredTool
+from langchain_core.tools import StructuredTool
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
+from pkg.client.llm.tool import pretty_print_python_object_tool
 from pkg.util.config.config import config_manager
 
 
 class ModelEnum(str, Enum):
-    gpt4o_mini = "gpt-4o-mini"
+    GPT4oMINI = "gpt-4o-mini"
 
-    qwen_turbo = "qwen-turbo"
-    qwen_plus = "qwen-plus"
+    QWEN_TURBO = "qwen-turbo"
+    QWEN_PLUS = "qwen-plus"
 
 
 
@@ -31,7 +32,7 @@ class BaseAIAgent:
         self.init_llm(
             api_key=config_manager.get_config().llm.api_key,
             base_url="https://api.openai.com/v1",
-            model=ModelEnum.gpt4o_mini.value
+            model=ModelEnum.GPT4oMINI.value
         )
         self.init_tools()
         self.init_prompt_template()
@@ -72,12 +73,12 @@ class BaseAIAgent:
         )
 
 
-class QwenTurboAgent(BaseAIAgent):
+class QwenAgent(BaseAIAgent):
     def init(self):
         self.init_llm(
             api_key=config_manager.get_config().llm.api_key,
             base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-            model=ModelEnum.qwen_turbo.value
+            model=ModelEnum.QWEN_PLUS.value
         )
         self.init_prompt_template()
         self.init_tools()
@@ -108,3 +109,10 @@ class QwenTurboAgent(BaseAIAgent):
 
     def invoke(self, query):
         return self.agent_executor.invoke(query)
+
+
+class LiscoAgent(QwenAgent):
+    def init_tools(self):
+        self.tools = [
+            pretty_print_python_object_tool
+        ]
