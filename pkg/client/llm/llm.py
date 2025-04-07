@@ -110,6 +110,12 @@ class QwenAgent(BaseAIAgent):
     def invoke(self, query):
         return self.agent_executor.invoke(query)
 
+    def stream(self, query):
+        return self.agent_executor.stream(query)
+
+    async def astream(self, query):
+        async for chunk in self.agent_executor.astream(query):
+            yield chunk
 
 class LiscoAgent(QwenAgent):
     def init_tools(self):

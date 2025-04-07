@@ -7,7 +7,7 @@ from random import randint
 from langchain_core.tools import StructuredTool, ToolException
 from pydantic import BaseModel, Field, ValidationError
 
-from pkg.client.llm.util import BKToolUtils
+from pkg.client.llm.util import ToolUtils, exception_to_tool_exception
 
 
 class OutputFormatEnum(Enum):
@@ -25,13 +25,15 @@ class InputFormatEnum(Enum):
     JSON_TEXT = "json_text"
     LIKE_JSON_TEXT = "like_json_text"
 
-def pretty_print_python_object(obj: str, input_format: str, output_format: str) -> str:
+
+@exception_to_tool_exception
+def pretty_print_python_object(obj: str, input_format: str = InputFormatEnum.JSON_TEXT.value, output_format: str = OutputFormatEnum.JSON.value) -> str:
     if input_format == InputFormatEnum.PYTHON_OBJECT.value:
         parsed_obj = ast.literal_eval(obj)
     elif input_format == InputFormatEnum.JSON_TEXT.value:
         parsed_obj = json.loads(obj)
     elif input_format == InputFormatEnum.LIKE_JSON_TEXT.value:
-        return BKToolUtils.tool_result_with_artifact("这是一个有些许错误的json文本，将数据展开每行一条数据，为错误的格式的行做注释", obj)
+        return ToolUtils.tool_result_with_artifact("这是一个有些许错误的json文本，将数据展开每行一条数据，为错误的格式的行做注释", obj)
     else:
         raise ValueError(f"Invalid input_format: {input_format}")
 
@@ -42,7 +44,7 @@ def pretty_print_python_object(obj: str, input_format: str, output_format: str) 
     else:
         raise ValueError(f"Invalid output_format: {output_format}")
 
-    return BKToolUtils.tool_result_with_artifact("处理完成", result)
+    return ToolUtils.tool_result_with_artifact("处理完成", result)
 
 
 
@@ -78,14 +80,16 @@ class ToolErrorHandler(BaseAgentErrorHandler):
     针对同一个线程
     """
     def __call__(self, exc: ToolException) -> str:
-        return f"exception when calling tool, exception: {exc}"
+        return f"exception when calling tool, exception: {exc}, 请告诉用户这个信息，并提醒用户修改输入"
 
 
 class ValidationErrorHandler(BaseAgentErrorHandler):
     """用于处理参数验证失败的情况
     """
-    def __call__(self, error: ValidationError) -> str:
-        return f"exception when validating input, exception: {error}, please check your input"
+    def __call__(self, tool_name: str):
+        def validate_error_handler(error: ValidationError):
+            return f"exception when {tool_name} validating input, exception: {error}, 请告诉用户这个信息，并提醒用户修改输入"
+        return validate_error_handler
 
 
 pretty_print_python_object_tool = StructuredTool.from_function(

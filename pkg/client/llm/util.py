@@ -1,7 +1,21 @@
+import functools
+import json
 from enum import Enum
 from typing import Dict, Any
 
+from langchain_core.tools import ToolException
 from pydantic import BaseModel, Field
+
+
+def exception_to_tool_exception(func):
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as err:
+            raise ToolException(str(err))
+
+    return inner
 
 
 class InnerMagicPrompt(str, Enum):
@@ -26,7 +40,7 @@ class ToolInputValidationError(BaseModel):
         return  "{} {} 识别到输入参数有误, 已识别的参数有 {}, 识别到校验不通过的参数有 {}".format(InnerMagicPrompt.INVALID_PARAMS_ERROR, self.tool_name, self.recognized_inputs, self.invalid_inputs)
 
 
-class BKToolUtils:
+class ToolUtils:
     @classmethod
     def tool_result_wrap(cls, tool_output):
         """
@@ -50,3 +64,23 @@ class BKToolUtils:
         带有查询结果的 tool 使用带有 artifact(工件) 的返回, 这种形式更有利于 LLM tool 之间的信息传递
         """
         return content, artifact
+
+    @staticmethod
+    def parse_json_response(response_text: str) -> dict:
+        """
+        解析并清理 JSON 响应文本
+        :param response_text: 返回的原始文本
+        :return: 解析后的 JSON 对象
+        """
+        try:
+            # 尝试直接解析 JSON
+            return json.loads(response_text.strip())
+        except json.JSONDecodeError:
+            # 如果直接解析失败，尝试去除多余的空格、换行符以及代码块标记后再解析
+            cleaned_response = (
+                response_text.strip()
+                .replace("\n", "")
+                .replace("```json", "")
+                .replace("```", "")
+            )
+            return json.loads(cleaned_response)
