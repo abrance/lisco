@@ -4,6 +4,7 @@ from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.tools import StructuredTool
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+
 from pydantic import BaseModel, Field
 
 from pkg.client.llm.tool import pretty_print_python_object_tool
@@ -39,11 +40,15 @@ class BaseAIAgent:
         self.init_agent()
         self.init_agent_executor()
 
-    def init_llm(self, api_key, base_url, model):
+    def init_llm(self, api_key, base_url, model, app_code=None):
+        query = None
+        if app_code:
+            query = dict(bk_app_code=app_code, bk_app_secret=api_key)
         self.llm = ChatOpenAI(
             api_key=api_key,
             base_url=base_url,
             model=model,
+            default_query = query
         )
 
     def init_agent(self):
@@ -77,8 +82,9 @@ class QwenAgent(BaseAIAgent):
     def init(self):
         self.init_llm(
             api_key=config_manager.get_config().llm.api_key,
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-            model=ModelEnum.QWEN_PLUS.value
+            base_url=config_manager.get_config().llm.base_url,
+            model=config_manager.get_config().llm.model,
+            app_code=config_manager.get_config().llm.app_code
         )
         self.init_prompt_template()
         self.init_tools()

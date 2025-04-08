@@ -1,4 +1,5 @@
 import configparser
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -21,7 +22,12 @@ class ConfigManager:
         api_key = self.config_parser.get('llm', 'api_key')
         self.config = LiscoConfig(
             server=Server(host=server_host, port=server_port),
-            llm=LLM(api_key=api_key)
+            llm=LLM(
+                api_key=api_key,
+                base_url=self.config_parser.get('llm', 'base_url'),
+                model=self.config_parser.get('llm', 'model'),
+                app_code=self.config_parser.get('llm', 'app_code')
+            )
         )
 
     def get_config(self):
@@ -33,7 +39,10 @@ class Server(BaseModel):
     port: int = Field(..., description="服务器端口")
 
 class LLM(BaseModel):
+    base_url: str = Field(..., description="LLM 服务器地址")
+    model: str = Field(..., description="LLM 模型")
     api_key: str = Field(..., description="LLM API Key")
+    app_code: Optional[str] = Field(description="LLM 应用编码")
 
 class LiscoConfig(BaseModel):
     server: Server = Field(..., description="服务器配置")

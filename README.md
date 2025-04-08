@@ -64,6 +64,8 @@ lisco 是一个提供各种 kingeye 开发服务的工具箱:
 | 3  | **✓**  | x          | 跑通一个测试接口                 |                                 |
 | 4  | **✓**  | x          | 在 client 中加入 ai agent 能力 |                                 |
 | 5  | **✓**  | x          | 实现 agent 流式 输出           |                                 |
+| 6  | **?**  | x          | 实现 证书工具 API （基于 cfssl）   |                                 |
+| 7  | **✓**  | x          | 实现更多模型网关接入               |                                 |
 
 
 **AI使用**
@@ -77,6 +79,7 @@ lisco 是一个提供各种 kingeye 开发服务的工具箱:
 | 4  | **?**  | 单个 agent 封装单个 app agent      | xxx                   |
 | 5  | **?**  | app 整合 app agent             | app agent 是 app 的一种类型 |
 | 6  | **?**  | MCP client 和 MCP server 能力整合 | xxx                   |
+
 
 
 ## 问题
