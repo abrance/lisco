@@ -123,8 +123,11 @@ class QwenAgent(BaseAIAgent):
         async for chunk in self.agent_executor.astream(query):
             yield chunk
 
+
 class LiscoAgent(QwenAgent):
     def init_tools(self):
         self.tools = [
             pretty_print_python_object_tool
         ]
+
+

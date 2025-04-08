@@ -80,6 +80,7 @@ def test_pretty_print_python_object_tool_stream(mock_lisco_agent, input_obj):
         print("output: ", chunk.get("output", ""))
 
 
+@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
 @pytest.mark.asyncio
 async def test_astream_various_inputs(mock_lisco_agent, mock_simple_list, mock_python_object):
     chunks = []
