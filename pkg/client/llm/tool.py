@@ -79,17 +79,15 @@ class ToolErrorHandler(BaseAgentErrorHandler):
     当工具调用失败太多,抛出调用失败的异常;
     针对同一个线程
     """
-    def __call__(self, exc: ToolException) -> str:
-        return f"exception when calling tool, exception: {exc}, 请告诉用户这个信息，并提醒用户修改输入"
+    def __call__(self, error: ToolException):
+        return f"exception when calling tool {self._id}, exception: {error}, 请告诉用户这个信息，并提醒用户修改输入"
 
 
 class ValidationErrorHandler(BaseAgentErrorHandler):
     """用于处理参数验证失败的情况
     """
-    def __call__(self, tool_name: str):
-        def validate_error_handler(error: ValidationError):
-            return f"exception when {tool_name} validating input, exception: {error}, 请告诉用户这个信息，并提醒用户修改输入"
-        return validate_error_handler
+    def __call__(self, error: ValidationError):
+       return f"exception when {self._id} validating input, exception: {error}, 请告诉用户这个信息，并提醒用户修改输入"
 
 
 pretty_print_python_object_tool = StructuredTool.from_function(

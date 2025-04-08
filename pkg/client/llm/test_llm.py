@@ -1,6 +1,8 @@
 from pkg.client.llm.llm import QwenAgent, LiscoAgent
 import pytest
 
+from pkg.util.config.config import config_manager
+
 
 @pytest.fixture
 def mock_qwen_agent():
@@ -55,20 +57,28 @@ def mock_python_object():
 }    
 """
 
-@pytest.mark.skip
+@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
 def test_mock_qwen_agent(mock_qwen_agent):
     result = mock_qwen_agent.invoke(
         {"input": "请计算 magic_function(3) 的结果"}
     )
     assert result["output"] == 5 or "5" in result["output"]
 
-@pytest.mark.skip
-def test_pretty_print_python_object_tool(mock_lisco_agent, mock_simple_list, mock_python_object):
-    result = mock_lisco_agent.invoke({"input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {mock_simple_list}"})
+
+@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
+@pytest.mark.parametrize("input_obj", [mock_simple_list, mock_python_object])
+def test_pretty_print_python_object_tool_invoke(mock_lisco_agent, input_obj):
+    result = mock_lisco_agent.invoke({"input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {input_obj}"})
     assert result["output"]
-    result = mock_lisco_agent.stream({"input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {mock_python_object}"})
+
+
+@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
+@pytest.mark.parametrize("input_obj", [mock_simple_list, mock_python_object])
+def test_pretty_print_python_object_tool_stream(mock_lisco_agent, input_obj):
+    result = mock_lisco_agent.stream({"input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {input_obj}"})
     for chunk in result:
         print("output: ", chunk.get("output", ""))
+
 
 @pytest.mark.asyncio
 async def test_astream_various_inputs(mock_lisco_agent, mock_simple_list, mock_python_object):
@@ -78,3 +88,5 @@ async def test_astream_various_inputs(mock_lisco_agent, mock_simple_list, mock_p
         chunks.append(chunk)
     final_output = "".join([c.get("output", "") for c in chunks])
     print("final_output: ", final_output)
+    for c in chunks:
+        print("output: ", c.get("output", ""))
