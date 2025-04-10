@@ -27,6 +27,9 @@ class ConfigManager:
                 base_url=self.config_parser.get('llm', 'base_url'),
                 model=self.config_parser.get('llm', 'model'),
                 app_code=self.config_parser.get('llm', 'app_code')
+            ),
+            spider=Spider(
+                jm_session_id=self.config_parser.get('spider', 'jm_session_id')
             )
         )
 
@@ -38,15 +41,22 @@ class Server(BaseModel):
     host: str = Field(..., description="服务器地址")
     port: int = Field(..., description="服务器端口")
 
+
 class LLM(BaseModel):
     base_url: str = Field(..., description="LLM 服务器地址")
     model: str = Field(..., description="LLM 模型")
     api_key: str = Field(..., description="LLM API Key")
     app_code: Optional[str] = Field(description="LLM 应用编码")
 
+
+class Spider(BaseModel):
+    jm_session_id: Optional[str] = Field(description="JM Session ID")
+
+
 class LiscoConfig(BaseModel):
     server: Server = Field(..., description="服务器配置")
     llm: LLM = Field(..., description="LLM 配置")
+    spider: Spider = Field(..., description="爬虫配置")
 
 
 config_manager = ConfigManager()
