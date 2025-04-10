@@ -13,9 +13,11 @@ def mock_qwen_agent():
 def mock_lisco_agent():
     return LiscoAgent()
 
+
 @pytest.fixture
 def mock_simple_list():
     return "[1, 2, 3]"
+
 
 @pytest.fixture
 def mock_python_object():
@@ -57,34 +59,57 @@ def mock_python_object():
 }    
 """
 
-@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
+
+@pytest.mark.skipif(
+    config_manager.get_config().llm.model == "qwen-plus",
+    reason="qwen-plus 暂时不参与测试",
+)
 def test_mock_qwen_agent(mock_qwen_agent):
-    result = mock_qwen_agent.invoke(
-        {"input": "请计算 magic_function(3) 的结果"}
-    )
+    result = mock_qwen_agent.invoke({"input": "请计算 magic_function(3) 的结果"})
     assert result["output"] == 5 or "5" in result["output"]
 
 
-@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
+@pytest.mark.skipif(
+    config_manager.get_config().llm.model == "qwen-plus",
+    reason="qwen-plus 暂时不参与测试",
+)
 @pytest.mark.parametrize("input_obj", [mock_simple_list, mock_python_object])
 def test_pretty_print_python_object_tool_invoke(mock_lisco_agent, input_obj):
-    result = mock_lisco_agent.invoke({"input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {input_obj}"})
+    result = mock_lisco_agent.invoke(
+        {
+            "input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {input_obj}"
+        }
+    )
     assert result["output"]
 
 
-@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
+@pytest.mark.skipif(
+    config_manager.get_config().llm.model == "qwen-plus",
+    reason="qwen-plus 暂时不参与测试",
+)
 @pytest.mark.parametrize("input_obj", [mock_simple_list, mock_python_object])
 def test_pretty_print_python_object_tool_stream(mock_lisco_agent, input_obj):
-    result = mock_lisco_agent.stream({"input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {input_obj}"})
+    result = mock_lisco_agent.stream(
+        {
+            "input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {input_obj}"
+        }
+    )
     for chunk in result:
         print("output: ", chunk.get("output", ""))
 
 
-@pytest.mark.skipif(config_manager.get_config().llm.model == "qwen-plus", reason="qwen-plus 暂时不参与测试")
+@pytest.mark.skipif(
+    config_manager.get_config().llm.model == "qwen-plus",
+    reason="qwen-plus 暂时不参与测试",
+)
 @pytest.mark.asyncio
-async def test_astream_various_inputs(mock_lisco_agent, mock_simple_list, mock_python_object):
+async def test_astream_various_inputs(
+    mock_lisco_agent, mock_simple_list, mock_python_object
+):
     chunks = []
-    query = {"input": f"帮我解析下面的python dict 对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {mock_python_object}"}
+    query = {
+        "input": f"帮我解析下面的python dict 对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {mock_python_object}"
+    }
     async for chunk in mock_lisco_agent.astream(query):
         chunks.append(chunk)
     final_output = "".join([c.get("output", "") for c in chunks])

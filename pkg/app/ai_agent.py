@@ -20,7 +20,8 @@ def read_root():
 
 class PrettyPrintPythonObjectBody(BaseModel):
     query: str = Field(description="用户请求字符串")
-    prompt: str = Field("""
+    prompt: str = Field(
+        """
     你是字符串处理专家，使用 pretty_print_python_object 工具并按照下面规则处理用户请求字符串，并返回处理结果。
     参数解析规则：
         input_format：
@@ -29,7 +30,10 @@ class PrettyPrintPythonObjectBody(BaseModel):
             like_json_text: 类似 json 文本，但是因为有一点格式问题，如缺少了一个引号、括号会导致 json 解析错误的文本
         output_format：
             输出格式，可选值：json, yaml, toml, ini, xml, html, markdown, latex, text， 默认为 text
-    """, description="用户提示词")
+    """,
+        description="用户提示词",
+    )
+
 
 @ai_agent_app.post("/pretty-print-python-object")
 def pretty_print_python_object(body: PrettyPrintPythonObjectBody) -> str:

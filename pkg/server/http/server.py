@@ -13,6 +13,7 @@ class AppServer:
             期望外层拿到 app 去注册路由
             期望 app 被 mount 到父 app
     """
+
     def __init__(self, base_url):
         self.base_url = base_url
         self.name = base_url
@@ -20,7 +21,6 @@ class AppServer:
 
     def get_app(self):
         return self.fastapi_app
-
 
 
 class WebServerLoader:
@@ -31,6 +31,7 @@ class WebServerLoader:
         - start 启动 http server
         - stop 停止 http server
     """
+
     def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
@@ -70,6 +71,3 @@ class WebServerLoader:
         """
         app_server_dc = {app.base_url: app for app in app_server_list}
         self.sub_apps.update(app_server_dc)
-
-
-

@@ -18,7 +18,6 @@ class ModelEnum(str, Enum):
     QWEN_PLUS = "qwen-plus"
 
 
-
 class BaseAIAgent:
     def __init__(self):
         self.llm = None
@@ -33,7 +32,7 @@ class BaseAIAgent:
         self.init_llm(
             api_key=config_manager.get_config().llm.api_key,
             base_url="https://api.openai.com/v1",
-            model=ModelEnum.GPT4oMINI.value
+            model=ModelEnum.GPT4oMINI.value,
         )
         self.init_tools()
         self.init_prompt_template()
@@ -45,10 +44,7 @@ class BaseAIAgent:
         if app_code:
             query = dict(bk_app_code=app_code, bk_app_secret=api_key)
         self.llm = ChatOpenAI(
-            api_key=api_key,
-            base_url=base_url,
-            model=model,
-            default_query = query
+            api_key=api_key, base_url=base_url, model=model, default_query=query
         )
 
     def init_agent(self):
@@ -66,15 +62,13 @@ class BaseAIAgent:
             [
                 ("system", "你是一个会调用工具的智能助手，按需执行任务。"),
                 ("human", "{input}"),
-                ("placeholder", "{agent_scratchpad}")
+                ("placeholder", "{agent_scratchpad}"),
             ]
         )
 
     def init_agent_executor(self):
         self.agent_executor = AgentExecutor(
-            agent=self.agent,
-            tools=self.tools,
-            verbose=True
+            agent=self.agent, tools=self.tools, verbose=True
         )
 
 
@@ -84,7 +78,7 @@ class QwenAgent(BaseAIAgent):
             api_key=config_manager.get_config().llm.api_key,
             base_url=config_manager.get_config().llm.base_url,
             model=config_manager.get_config().llm.model,
-            app_code=config_manager.get_config().llm.app_code
+            app_code=config_manager.get_config().llm.app_code,
         )
         self.init_prompt_template()
         self.init_tools()
@@ -102,16 +96,14 @@ class QwenAgent(BaseAIAgent):
             input: int = Field(..., description="输入整数")
 
         s = StructuredTool.from_function(
-                func=magic_function,
-                name="magic_function",
-                description="对输入整数执行魔法函数（+2）, input: int",
-                args_schema=MagicFunctionInput,
-                return_direct=False
-            )
+            func=magic_function,
+            name="magic_function",
+            description="对输入整数执行魔法函数（+2）, input: int",
+            args_schema=MagicFunctionInput,
+            return_direct=False,
+        )
 
-        self.tools = [
-            s
-        ]
+        self.tools = [s]
 
     def invoke(self, query):
         return self.agent_executor.invoke(query)
@@ -126,8 +118,4 @@ class QwenAgent(BaseAIAgent):
 
 class LiscoAgent(QwenAgent):
     def init_tools(self):
-        self.tools = [
-            pretty_print_python_object_tool
-        ]
-
-
+        self.tools = [pretty_print_python_object_tool]

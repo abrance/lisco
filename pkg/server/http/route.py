@@ -35,4 +35,3 @@ class Route:
         self.app.include_router(
             # 添加路由
         )
-

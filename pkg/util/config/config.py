@@ -17,20 +17,20 @@ class ConfigManager:
         self.config_parser.read(DEFAULT_CONFIG_PATH)
         self.config_parser.read(DEFAULT_CONFIG_PATH)
 
-        server_host = self.config_parser.get('server', 'host')
-        server_port = self.config_parser.getint('server', 'port')
-        api_key = self.config_parser.get('llm', 'api_key')
+        server_host = self.config_parser.get("server", "host")
+        server_port = self.config_parser.getint("server", "port")
+        api_key = self.config_parser.get("llm", "api_key")
         self.config = LiscoConfig(
             server=Server(host=server_host, port=server_port),
             llm=LLM(
                 api_key=api_key,
-                base_url=self.config_parser.get('llm', 'base_url'),
-                model=self.config_parser.get('llm', 'model'),
-                app_code=self.config_parser.get('llm', 'app_code')
+                base_url=self.config_parser.get("llm", "base_url"),
+                model=self.config_parser.get("llm", "model"),
+                app_code=self.config_parser.get("llm", "app_code"),
             ),
             spider=Spider(
-                jm_session_id=self.config_parser.get('spider', 'jm_session_id')
-            )
+                jm_session_id=self.config_parser.get("spider", "jm_session_id")
+            ),
         )
 
     def get_config(self):

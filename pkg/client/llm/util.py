@@ -29,7 +29,9 @@ class ToolHandleError(BaseModel):
     error_msg: str = Field(description="The error message.")
 
     def err_msg(self):
-        return  "{} {} 执行出错, 错误信息为 {}".format(InnerMagicPrompt.TOOL_HANDLE_ERROR, self.tool_name, self.error_msg)
+        return "{} {} 执行出错, 错误信息为 {}".format(
+            InnerMagicPrompt.TOOL_HANDLE_ERROR, self.tool_name, self.error_msg
+        )
 
 
 class ToolInputValidationError(BaseModel):
@@ -38,7 +40,12 @@ class ToolInputValidationError(BaseModel):
     invalid_inputs: Dict[str, Any] = Field(description="The invalid inputs.")
 
     def err_msg(self):
-        return  "{} {} 识别到输入参数有误, 已识别的参数有 {}, 识别到校验不通过的参数有 {}".format(InnerMagicPrompt.INVALID_PARAMS_ERROR, self.tool_name, self.recognized_inputs, self.invalid_inputs)
+        return "{} {} 识别到输入参数有误, 已识别的参数有 {}, 识别到校验不通过的参数有 {}".format(
+            InnerMagicPrompt.INVALID_PARAMS_ERROR,
+            self.tool_name,
+            self.recognized_inputs,
+            self.invalid_inputs,
+        )
 
 
 class ToolUtils:
@@ -54,7 +61,9 @@ class ToolUtils:
 
     @classmethod
     def tool_exception_wrap(cls, tool_error):
-        if isinstance(tool_error, ToolInputValidationError) or isinstance(tool_error, ToolHandleError):
+        if isinstance(tool_error, ToolInputValidationError) or isinstance(
+            tool_error, ToolHandleError
+        ):
             return cls.tool_result_wrap(tool_error.err_msg())
         else:
             return cls.tool_result_wrap(tool_error)

@@ -21,3 +21,12 @@ test:
 	coverage run --rcfile=./.coveragerc -m pytest -s
 	coverage report --rcfile=./.coveragerc
 
+
+TARGET_DIR = pkg/
+
+.PHONY: reformat
+reformat:
+	black $(TARGET_DIR)
+	flake8 $(TARGET_DIR) --max-line-length=120
+	isort $(TARGET_DIR)
+

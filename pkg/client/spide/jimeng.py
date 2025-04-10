@@ -5,30 +5,44 @@ import requests
 from pydantic import BaseModel, Field
 
 from pkg.client.spide import utils
-from pkg.client.spide.images import get_model, get_credit, receive_credit, build_abilities
-from pkg.client.spide.jimeng_core import generate_cookie, request, DEFAULT_ASSISTANT_ID, \
-    API_IMAGE_GENERATION_FAILED, API_CONTENT_FILTERED, DRAFT_VERSION
+from pkg.client.spide.images import (
+    get_model,
+    get_credit,
+    receive_credit,
+    build_abilities,
+)
+from pkg.client.spide.jimeng_core import (
+    generate_cookie,
+    request,
+    DEFAULT_ASSISTANT_ID,
+    API_IMAGE_GENERATION_FAILED,
+    API_CONTENT_FILTERED,
+    DRAFT_VERSION,
+)
 
 import hmac
 import zlib
-import logging, random
+import logging
+import random
 import hashlib
 
 logging.basicConfig(
-    format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s', level=logging.INFO
+    format="%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
+    level=logging.INFO,
 )
 
 day_n = 1
 
+
 def hash256(msg):
-    return hashlib.sha256(msg.encode('utf-8')).hexdigest()
+    return hashlib.sha256(msg.encode("utf-8")).hexdigest()
 
 
 def hmac_hash256(key, msg):
-    if type(key) == str:
-        return hmac.new(key.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256)
-    elif type(key) == hmac.HMAC:
-        return hmac.new(key.digest(), msg.encode('utf-8'), hashlib.sha256)
+    if isinstance(key, str):
+        return hmac.new(key.encode("utf-8"), msg.encode("utf-8"), hashlib.sha256)
+    elif isinstance(key, hmac.HMAC):
+        return hmac.new(key.digest(), msg.encode("utf-8"), hashlib.sha256)
 
 
 def fileCRC32(file_buffer):
@@ -51,14 +65,17 @@ class ImageRequestBuilder:
         self.data = data
 
     def getAuthorization(self):
-        return f"AWS4-HMAC-SHA256 Credential={self.e['access_key_id']}/{self.t[0:8]}/cn-north-1/imagex/aws4_request, SignedHeaders=x-amz-date;x-amz-security-token, Signature={self.signature()}"
+        return (
+            f"AWS4-HMAC-SHA256 Credential={self.e['access_key_id']}/{self.t[0:8]}/cn-north-1/imagex/aws4_request, "
+            f"SignedHeaders=x-amz-date;x-amz-security-token, Signature={self.signature()}"
+        )
 
     def signature(self):
         r = self.getSigningKey()
         return hmac_hash256(r, self.stringToSign()).hexdigest()
 
     def getSigningKey(self, r="cn-north-1", n="imagex"):
-        o = hmac_hash256("AWS4" + self.e['secret_access_key'], str(self.t[0:8]))
+        o = hmac_hash256("AWS4" + self.e["secret_access_key"], str(self.t[0:8]))
         i = hmac_hash256(o, str(r))
         s = hmac_hash256(i, str(n))
         return hmac_hash256(s, "aws4_request")
@@ -101,15 +118,15 @@ def get_upload_token(cookie):
     }
     r = requests.post(api, headers=headers)
     print(r.json())
-    if r.status_code == 200 and r.json()['errmsg'] == "success":
-        return r.json()['data']
+    if r.status_code == 200 and r.json()["errmsg"] == "success":
+        return r.json()["data"]
     else:
         logging.error("获取token失败", r.text)
         return None
 
 
 def random_str(n):
-    return ''.join(random.sample('zyxwvutsrqponmlkjihgfedcba0123456789', n))
+    return "".join(random.sample("zyxwvutsrqponmlkjihgfedcba0123456789", n))
 
 
 def get_as_pic(image_path):
@@ -133,7 +150,9 @@ class UploadImageInfo(BaseModel):
 
 class ImageInfo(BaseModel):
     path: str = Field(..., title="图片路径", description="图片路径")
-    content_type: str = Field("application/octet-stream", title="图片类型", description="图片类型")
+    content_type: str = Field(
+        "application/octet-stream", title="图片类型", description="图片类型"
+    )
     content: bytes = Field(..., title="图片内容", description="图片内容")
     checksum: str = Field(..., title="校验和", description="校验和")
     length: int = Field(..., title="图片长度", description="图片长度")
@@ -148,7 +167,7 @@ class ImageInfo(BaseModel):
                         path=path,
                         content=image_data,
                         checksum=fileCRC32(image_data),
-                        length=len(image_data)
+                        length=len(image_data),
                     )
                 else:
                     return None
@@ -173,20 +192,26 @@ class JMImageUploader:
             "ServiceId": "tb4s082cfz",
             "s": random_str(11),
         }
-        r = ImageRequestBuilder(upload_token, t, "https://imagex.bytedanceapi.com/", method="GET", params=params)
+        r = ImageRequestBuilder(
+            upload_token,
+            t,
+            "https://imagex.bytedanceapi.com/",
+            method="GET",
+            params=params,
+        )
         headers = {
-            'authorization': r.getAuthorization(),
-            'x-amz-date': t,
-            'x-amz-security-token': upload_token['session_token'],
+            "authorization": r.getAuthorization(),
+            "x-amz-date": t,
+            "x-amz-security-token": upload_token["session_token"],
         }
         resp = requests.get(r.api, params=params, headers=headers).json()
         if "Result" not in resp:
             raise Exception("获取上传地址失败")
 
         upload_image_info = UploadImageInfo(
-            host=resp['Result']['UploadAddress']['UploadHosts'][0],
-            uri=resp['Result']['UploadAddress']['StoreInfos'][0]['StoreUri'],
-            auth=resp['Result']['UploadAddress']['StoreInfos'][0]['Auth']
+            host=resp["Result"]["UploadAddress"]["UploadHosts"][0],
+            uri=resp["Result"]["UploadAddress"]["StoreInfos"][0]["StoreUri"],
+            auth=resp["Result"]["UploadAddress"]["StoreInfos"][0]["Auth"],
         )
         return upload_image_info
 
@@ -211,15 +236,16 @@ class JMImageToImageWorker:
         self.session_id = session_id
 
     @classmethod
-    def generate_images(cls,
-            model: str,
-            prompt: str,
-            width: int = 1024,
-            height: int = 1024,
-            sample_strength: float = 0.5,
-            negative_prompt: str = "",
-            refresh_token: str = None,
-            image_uri: str = None
+    def generate_images(
+        cls,
+        model: str,
+        prompt: str,
+        width: int = 1024,
+        height: int = 1024,
+        sample_strength: float = 0.5,
+        negative_prompt: str = "",
+        refresh_token: str = None,
+        image_uri: str = None,
     ) -> List[str]:
         """生成图像
 
@@ -251,7 +277,7 @@ class JMImageToImageWorker:
 
         # 检查积分
         credit_info = get_credit(refresh_token)
-        if credit_info.get('totalCredit', 0) <= 0:
+        if credit_info.get("totalCredit", 0) <= 0:
             receive_credit(refresh_token)
 
         # 生成组件ID
@@ -263,12 +289,16 @@ class JMImageToImageWorker:
             "/mweb/v1/aigc_draft/generate",
             refresh_token,
             params={
-                "babi_param": utils.url_encode(utils.json_encode({
-                    "scenario": "image_video_generation",
-                    "feature_key": "to_image_referenceimage_generate",
-                    "feature_entrance": "to_image",
-                    "feature_entrance_detail": f"to_image-{_model}",
-                }))
+                "babi_param": utils.url_encode(
+                    utils.json_encode(
+                        {
+                            "scenario": "image_video_generation",
+                            "feature_key": "to_image_referenceimage_generate",
+                            "feature_entrance": "to_image",
+                            "feature_entrance_detail": f"to_image-{_model}",
+                        }
+                    )
+                )
             },
             data={
                 "extend": {
@@ -276,38 +306,50 @@ class JMImageToImageWorker:
                     "template_id": "",
                 },
                 "submit_id": utils.generate_uuid(),
-                "metrics_extra": utils.json_encode({
-                    "templateId": "",
-                    "generateCount": 1,
-                    "promptSource": "custom",
-                    "templateSource": "",
-                    "lastRequestId": "",
-                    "originRequestId": "",
-                }),
-                "draft_content": utils.json_encode({
-                    "type": "draft",
-                    "id": utils.generate_uuid(),
-                    "min_version": DRAFT_VERSION,
-                    "is_from_tsn": True,
-                    "version": DRAFT_VERSION,
-                    "main_component_id": component_id,
-                    "component_list": [{
-                        "type": "image_base_component",
-                        "id": component_id,
+                "metrics_extra": utils.json_encode(
+                    {
+                        "templateId": "",
+                        "generateCount": 1,
+                        "promptSource": "custom",
+                        "templateSource": "",
+                        "lastRequestId": "",
+                        "originRequestId": "",
+                    }
+                ),
+                "draft_content": utils.json_encode(
+                    {
+                        "type": "draft",
+                        "id": utils.generate_uuid(),
                         "min_version": DRAFT_VERSION,
-                        "generate_type": generate_type,    # blend  generate  后面 abilities 需要填入不同的结构
-                        "aigc_mode": "workbench",
-                        "abilities": build_abilities(prompt, image_uri, _model, sample_strength, height, width, negative_prompt)
-                    }]
-                }),
-                "http_common_info": {
-                    "aid": int(DEFAULT_ASSISTANT_ID)
-                }
-            }
+                        "is_from_tsn": True,
+                        "version": DRAFT_VERSION,
+                        "main_component_id": component_id,
+                        "component_list": [
+                            {
+                                "type": "image_base_component",
+                                "id": component_id,
+                                "min_version": DRAFT_VERSION,
+                                "generate_type": generate_type,  # blend  generate  后面 abilities 需要填入不同的结构
+                                "aigc_mode": "workbench",
+                                "abilities": build_abilities(
+                                    prompt,
+                                    image_uri,
+                                    _model,
+                                    sample_strength,
+                                    height,
+                                    width,
+                                    negative_prompt,
+                                ),
+                            }
+                        ],
+                    }
+                ),
+                "http_common_info": {"aid": int(DEFAULT_ASSISTANT_ID)},
+            },
         )
 
         # 获取历史记录ID
-        history_id = result.get('aigc_data', {}).get('history_record_id')
+        history_id = result.get("aigc_data", {}).get("history_record_id")
         if not history_id:
             raise API_IMAGE_GENERATION_FAILED("记录ID不存在")
 
@@ -329,48 +371,120 @@ class JMImageToImageWorker:
                         "height": 2048,
                         "format": "webp",
                         "image_scene_list": [
-                            {"scene": "smart_crop", "width": 360, "height": 360, "uniq_key": "smart_crop-w:360-h:360", "format": "webp"},
-                            {"scene": "smart_crop", "width": 480, "height": 480, "uniq_key": "smart_crop-w:480-h:480", "format": "webp"},
-                            {"scene": "smart_crop", "width": 720, "height": 720, "uniq_key": "smart_crop-w:720-h:720", "format": "webp"},
-                            {"scene": "smart_crop", "width": 720, "height": 480, "uniq_key": "smart_crop-w:720-h:480", "format": "webp"},
-                            {"scene": "smart_crop", "width": 360, "height": 240, "uniq_key": "smart_crop-w:360-h:240", "format": "webp"},
-                            {"scene": "smart_crop", "width": 240, "height": 320, "uniq_key": "smart_crop-w:240-h:320", "format": "webp"},
-                            {"scene": "smart_crop", "width": 480, "height": 640, "uniq_key": "smart_crop-w:480-h:640", "format": "webp"},
-                            {"scene": "normal", "width": 2400, "height": 2400, "uniq_key": "2400", "format": "webp"},
-                            {"scene": "normal", "width": 1080, "height": 1080, "uniq_key": "1080", "format": "webp"},
-                            {"scene": "normal", "width": 720, "height": 720, "uniq_key": "720", "format": "webp"},
-                            {"scene": "normal", "width": 480, "height": 480, "uniq_key": "480", "format": "webp"},
-                            {"scene": "normal", "width": 360, "height": 360, "uniq_key": "360", "format": "webp"}
-                        ]
+                            {
+                                "scene": "smart_crop",
+                                "width": 360,
+                                "height": 360,
+                                "uniq_key": "smart_crop-w:360-h:360",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "smart_crop",
+                                "width": 480,
+                                "height": 480,
+                                "uniq_key": "smart_crop-w:480-h:480",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "smart_crop",
+                                "width": 720,
+                                "height": 720,
+                                "uniq_key": "smart_crop-w:720-h:720",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "smart_crop",
+                                "width": 720,
+                                "height": 480,
+                                "uniq_key": "smart_crop-w:720-h:480",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "smart_crop",
+                                "width": 360,
+                                "height": 240,
+                                "uniq_key": "smart_crop-w:360-h:240",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "smart_crop",
+                                "width": 240,
+                                "height": 320,
+                                "uniq_key": "smart_crop-w:240-h:320",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "smart_crop",
+                                "width": 480,
+                                "height": 640,
+                                "uniq_key": "smart_crop-w:480-h:640",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "normal",
+                                "width": 2400,
+                                "height": 2400,
+                                "uniq_key": "2400",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "normal",
+                                "width": 1080,
+                                "height": 1080,
+                                "uniq_key": "1080",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "normal",
+                                "width": 720,
+                                "height": 720,
+                                "uniq_key": "720",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "normal",
+                                "width": 480,
+                                "height": 480,
+                                "uniq_key": "480",
+                                "format": "webp",
+                            },
+                            {
+                                "scene": "normal",
+                                "width": 360,
+                                "height": 360,
+                                "uniq_key": "360",
+                                "format": "webp",
+                            },
+                        ],
                     },
-                    "http_common_info": {
-                        "aid": int(DEFAULT_ASSISTANT_ID)
-                    }
-                }
+                    "http_common_info": {"aid": int(DEFAULT_ASSISTANT_ID)},
+                },
             )
 
             record = result.get(history_id)
             if not record:
                 raise API_IMAGE_GENERATION_FAILED("记录不存在")
 
-            status = record.get('status')
-            fail_code = record.get('fail_code')
-            item_list = record.get('item_list', [])
+            status = record.get("status")
+            fail_code = record.get("fail_code")
+            item_list = record.get("item_list", [])
 
         if status == 30:
-            if fail_code == '2038':
+            if fail_code == "2038":
                 raise API_CONTENT_FILTERED()
             raise API_IMAGE_GENERATION_FAILED()
 
         # 提取图片URL
         return [
-            item.get('image', {}).get('large_images', [{}])[0].get('image_url') or
-            item.get('common_attr', {}).get('cover_url')
+            item.get("image", {}).get("large_images", [{}])[0].get("image_url")
+            or item.get("common_attr", {}).get("cover_url")
             for item in item_list
             if item
         ]
 
-    def single_image_to_images(self, image_path, prompt, negative_prompt, width, height, sample_strength):
+    def single_image_to_images(
+        self, image_path, prompt, negative_prompt, width, height, sample_strength
+    ):
         uploader = JMImageUploader(self.session_id, image_path)
         upload_image_info = uploader.upload()
         urls = self.generate_images(
@@ -381,6 +495,6 @@ class JMImageToImageWorker:
             sample_strength=sample_strength,
             negative_prompt=negative_prompt,
             refresh_token=self.session_id,
-            image_uri=upload_image_info.uri
+            image_uri=upload_image_info.uri,
         )
         return urls
