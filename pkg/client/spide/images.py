@@ -5,13 +5,15 @@ import time
 from typing import Dict, List
 
 
-from . import utils
 from .jimeng_core import (
     request,
     DEFAULT_ASSISTANT_ID,
     DEFAULT_MODEL,
     DRAFT_VERSION,
     MODEL_MAP,
+    generate_uuid,
+    json_encode,
+    url_encode,
 )
 from .jimeng_core import API_CONTENT_FILTERED, API_IMAGE_GENERATION_FAILED
 
@@ -76,11 +78,11 @@ def build_abilities(
 ):
     dc = {
         "type": "",
-        "id": utils.generate_uuid(),
+        "id": generate_uuid(),
         "prompt_placeholder_info_list": [
-            {"type": "", "id": utils.generate_uuid(), "ability_index": 0}
+            {"type": "", "id": generate_uuid(), "ability_index": 0}
         ],
-        "postedit_param": {"type": "", "id": utils.generate_uuid(), "generate_type": 0},
+        "postedit_param": {"type": "", "id": generate_uuid(), "generate_type": 0},
     }
     if image_uri:
         dc["blend"] = build_abilities_by_generate_type(
@@ -99,10 +101,10 @@ def build_abilities_by_generate_type(
     dc = {
         "generate": {
             "type": "",
-            "id": utils.generate_uuid(),
+            "id": generate_uuid(),
             "core_param": {
                 "type": "",
-                "id": utils.generate_uuid(),
+                "id": generate_uuid(),
                 "model": _model,
                 "prompt": prompt,
                 "negative_prompt": negative_prompt,
@@ -111,30 +113,30 @@ def build_abilities_by_generate_type(
                 "image_ratio": 1,
                 "large_image_info": {
                     "type": "",
-                    "id": utils.generate_uuid(),
+                    "id": generate_uuid(),
                     "height": height,
                     "width": width,
                 },
             },
             "history_option": {
                 "type": "",
-                "id": utils.generate_uuid(),
+                "id": generate_uuid(),
             },
         },
         "blend": {
             "type": "",
-            "id": utils.generate_uuid(),
+            "id": generate_uuid(),
             "mini_features": [],
             "core_param": {
                 "type": "",
-                "id": utils.generate_uuid(),
+                "id": generate_uuid(),
                 "model": _model,
                 "prompt": prompt,
                 "sample_strength": sample_strength,
                 "image_ratio": 1,
                 "large_image_info": {
                     "type": "",
-                    "id": utils.generate_uuid(),
+                    "id": generate_uuid(),
                     "height": height,
                     "width": width,
                     "resolution_type": "1k",
@@ -143,13 +145,13 @@ def build_abilities_by_generate_type(
             "ability_list": [
                 {
                     "type": "",
-                    "id": utils.generate_uuid(),
+                    "id": generate_uuid(),
                     "name": "byte_edit",
                     "image_uri_list": [image_uri],
                     "image_list": [
                         {
                             "type": "image",
-                            "id": utils.generate_uuid(),
+                            "id": generate_uuid(),
                             "source_from": "upload",
                             "platform_type": 1,
                             "name": "",
@@ -215,7 +217,7 @@ def generate_images(
         receive_credit(refresh_token)
 
     # 生成组件ID
-    component_id = utils.generate_uuid()
+    component_id = generate_uuid()
     generate_type = "blend" if image_uri else "generate"
     # 发送生成请求
     result = request(
@@ -223,8 +225,8 @@ def generate_images(
         "/mweb/v1/aigc_draft/generate",
         refresh_token,
         params={
-            "babi_param": utils.url_encode(
-                utils.json_encode(
+            "babi_param": url_encode(
+                json_encode(
                     {
                         "scenario": "image_video_generation",
                         "feature_key": "to_image_referenceimage_generate",
@@ -239,8 +241,8 @@ def generate_images(
                 "root_model": _model,
                 "template_id": "",
             },
-            "submit_id": utils.generate_uuid(),
-            "metrics_extra": utils.json_encode(
+            "submit_id": generate_uuid(),
+            "metrics_extra": json_encode(
                 {
                     "templateId": "",
                     "generateCount": 1,
@@ -250,10 +252,10 @@ def generate_images(
                     "originRequestId": "",
                 }
             ),
-            "draft_content": utils.json_encode(
+            "draft_content": json_encode(
                 {
                     "type": "draft",
-                    "id": utils.generate_uuid(),
+                    "id": generate_uuid(),
                     "min_version": DRAFT_VERSION,
                     "is_from_tsn": True,
                     "version": DRAFT_VERSION,

@@ -31,6 +31,18 @@ class ConfigManager:
             spider=Spider(
                 jm_session_id=self.config_parser.get("spider", "jm_session_id")
             ),
+            db=DB(
+                host=self.config_parser.get("db", "host"),
+                port=self.config_parser.getint("db", "port"),
+                user=self.config_parser.get("db", "user"),
+                password=self.config_parser.get("db", "password"),
+                db_name=self.config_parser.get("db", "db_name"),
+            ),
+            storage=Storage(
+                image_storage_path=self.config_parser.get(
+                    "storage", "image_storage_path"
+                )
+            ),
         )
 
     def get_config(self):
@@ -53,10 +65,24 @@ class Spider(BaseModel):
     jm_session_id: Optional[str] = Field(description="JM Session ID")
 
 
+class DB(BaseModel):
+    host: str = Field(..., description="数据库地址")
+    port: int = Field(..., description="数据库端口")
+    user: str = Field(..., description="数据库用户名")
+    password: str = Field(..., description="数据库密码")
+    db_name: str = Field(..., description="数据库名称")
+
+
+class Storage(BaseModel):
+    image_storage_path: str = Field(..., description="图片存储路径")
+
+
 class LiscoConfig(BaseModel):
     server: Server = Field(..., description="服务器配置")
     llm: LLM = Field(..., description="LLM 配置")
     spider: Spider = Field(..., description="爬虫配置")
+    db: DB = Field(..., description="数据库配置")
+    storage: Storage = Field(..., description="存储配置")
 
 
 config_manager = ConfigManager()

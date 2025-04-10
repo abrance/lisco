@@ -4,7 +4,6 @@ from typing import List
 import requests
 from pydantic import BaseModel, Field
 
-from pkg.client.spide import utils
 from pkg.client.spide.images import (
     get_model,
     get_credit,
@@ -18,6 +17,9 @@ from pkg.client.spide.jimeng_core import (
     API_IMAGE_GENERATION_FAILED,
     API_CONTENT_FILTERED,
     DRAFT_VERSION,
+    json_encode,
+    generate_uuid,
+    url_encode,
 )
 
 import hmac
@@ -185,7 +187,7 @@ class JMImageUploader:
     def get_upload_address(self):
         cookie = generate_cookie(self.session_id)
         upload_token = get_upload_token(cookie)
-        t = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        time_now_str = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
         params = {
             "Action": "ApplyImageUpload",
             "Version": "2018-08-01",
@@ -194,14 +196,14 @@ class JMImageUploader:
         }
         r = ImageRequestBuilder(
             upload_token,
-            t,
+            time_now_str,
             "https://imagex.bytedanceapi.com/",
             method="GET",
             params=params,
         )
         headers = {
             "authorization": r.getAuthorization(),
-            "x-amz-date": t,
+            "x-amz-date": time_now_str,
             "x-amz-security-token": upload_token["session_token"],
         }
         resp = requests.get(r.api, params=params, headers=headers).json()
@@ -281,7 +283,7 @@ class JMImageToImageWorker:
             receive_credit(refresh_token)
 
         # 生成组件ID
-        component_id = utils.generate_uuid()
+        component_id = generate_uuid()
         generate_type = "blend" if image_uri else "generate"
         # 发送生成请求
         result = request(
@@ -289,8 +291,8 @@ class JMImageToImageWorker:
             "/mweb/v1/aigc_draft/generate",
             refresh_token,
             params={
-                "babi_param": utils.url_encode(
-                    utils.json_encode(
+                "babi_param": url_encode(
+                    json_encode(
                         {
                             "scenario": "image_video_generation",
                             "feature_key": "to_image_referenceimage_generate",
@@ -305,8 +307,8 @@ class JMImageToImageWorker:
                     "root_model": _model,
                     "template_id": "",
                 },
-                "submit_id": utils.generate_uuid(),
-                "metrics_extra": utils.json_encode(
+                "submit_id": generate_uuid(),
+                "metrics_extra": json_encode(
                     {
                         "templateId": "",
                         "generateCount": 1,
@@ -316,10 +318,10 @@ class JMImageToImageWorker:
                         "originRequestId": "",
                     }
                 ),
-                "draft_content": utils.json_encode(
+                "draft_content": json_encode(
                     {
                         "type": "draft",
-                        "id": utils.generate_uuid(),
+                        "id": generate_uuid(),
                         "min_version": DRAFT_VERSION,
                         "is_from_tsn": True,
                         "version": DRAFT_VERSION,
