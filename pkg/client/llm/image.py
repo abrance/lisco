@@ -2,6 +2,8 @@ import time
 
 import requests
 
+from pkg.util.log.log import logger
+
 
 class ImageEditor:
     """
@@ -40,13 +42,13 @@ class ImageEditor:
             response.raise_for_status()
 
             resp = response.json()
-            print("Response JSON:", resp)
+            logger.info("Response JSON:", resp)
             # {'output': {'task_status': 'PENDING', 'task_id': '4248e4d2-4034-4afe-89af-6dd4aa2e57ef'},
             # 'request_id': '35e6a587-dc4b-904a-b364-57cf987928b0'}
             return resp
 
         except requests.exceptions.RequestException as e:
-            print(f"请求失败: {e}")
+            logger.info(f"请求失败: {e}")
 
     def check_task_status(self, task_id: str, poll_interval: int = 5) -> dict:
         """
@@ -68,10 +70,10 @@ class ImageEditor:
             data = response.json()
             task_status = data.get("output", {}).get("task_status", "UNKNOWN")
 
-            print(f"当前状态：{task_status}（{time.ctime()}）")
+            logger.info(f"当前状态：{task_status}（{time.ctime()}）")
 
             if task_status == "SUCCEEDED":
-                print("任务成功！")
+                logger.info("任务成功！")
                 return data["output"]
             elif task_status == "FAILED":
                 raise RuntimeError(

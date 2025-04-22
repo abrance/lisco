@@ -18,8 +18,10 @@ class DBManager:
         self.db_password = db_password
 
         # 创建数据库连接字符串
-        connection_string = (f"mysql+pymysql://"
-                             f"{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}")
+        connection_string = (
+            f"mysql+pymysql://"
+            f"{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
 
         # 创建数据库引擎
         self.engine = create_engine(connection_string)

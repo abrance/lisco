@@ -56,7 +56,7 @@ def mock_python_object():
 	}],
 	"created_at": 1734418115,
 	"updated_at": 1734418115
-}    
+}
 """
 
 

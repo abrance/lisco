@@ -15,7 +15,7 @@ from pkg.db.model.model import (
     Quote as QuoteModel,
     QuoteFile as QuoteFileModel,
 )
-
+from pkg.util.log.log import logger
 
 APP_NAME = "resource"
 
@@ -102,6 +102,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 @resource_app.get("/users/")
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = db.query(UserModel).offset(skip).limit(limit).all()
+    logger.info("users: {}".format(users))
     return users
 
 

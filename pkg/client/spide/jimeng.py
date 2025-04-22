@@ -28,6 +28,8 @@ import logging
 import random
 import hashlib
 
+from pkg.util.log.log import logger
+
 logging.basicConfig(
     format="%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
     level=logging.INFO,
@@ -119,7 +121,7 @@ def get_upload_token(cookie):
         "cookie": cookie.strip(),
     }
     r = requests.post(api, headers=headers)
-    print(r.json())
+    logger.info(r.json())
     if r.status_code == 200 and r.json()["errmsg"] == "success":
         return r.json()["data"]
     else:

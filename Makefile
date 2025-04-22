@@ -22,6 +22,12 @@ test:
 	coverage report --rcfile=./.coveragerc
 
 
+.PHONY: test-all
+test-all:
+	coverage run --rcfile=./.coveragerc -m pytest -s
+	coverage report --rcfile=./.coveragerc
+
+
 TARGET_DIR = pkg/
 
 .PHONY: reformat

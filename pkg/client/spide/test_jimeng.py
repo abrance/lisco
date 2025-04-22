@@ -1,7 +1,15 @@
+import os
+
+import pytest
+
 from pkg.client.spide.jimeng import JMImageToImageWorker
 from pkg.util.config.config import config_manager
 
 
+@pytest.mark.skipif(
+    os.getenv("TEST_JM") != "true",
+    reason="不参与测试",
+)
 def test_upload_image_and_generate():
     session_id = config_manager.get_config().spider.jm_session_id
     worker = JMImageToImageWorker(session_id)
