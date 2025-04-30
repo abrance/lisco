@@ -18,7 +18,7 @@ release-requirements:
 
 .PHONY: test
 test:
-	coverage run --rcfile=./.coveragerc -m pytest -s
+	coverage run --rcfile=./.coveragerc -m pytest -s -v
 	coverage report --rcfile=./.coveragerc
 
 

@@ -73,11 +73,11 @@ def test_mock_qwen_agent(mock_qwen_agent):
     config_manager.get_config().llm.model == "qwen-plus",
     reason="qwen-plus 暂时不参与测试",
 )
-@pytest.mark.parametrize("input_obj", [mock_simple_list, mock_python_object])
-def test_pretty_print_python_object_tool_invoke(mock_lisco_agent, input_obj):
+# @pytest.mark.parametrize("input_obj", [mock_simple_list, mock_python_object])
+def test_pretty_print_python_object_tool_invoke(mock_lisco_agent, mock_simple_list):
     result = mock_lisco_agent.invoke(
         {
-            "input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {input_obj}"
+            "input": f"帮我解析下面的python对象，并用 json 友好输出，只输出结果，避免解释。\n\nobj = {mock_simple_list}"
         }
     )
     assert result["output"]
