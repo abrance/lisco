@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from pydantic import BaseModel, Field
 
+from pkg.client.llm.api_tool import HttpAPI, HttpFunction, Function, Parameters, ArgProperty, HttpAPIManager
 from pkg.client.llm.tool import pretty_print_python_object_tool
 from pkg.util.config.config import config_manager
 
@@ -119,3 +120,11 @@ class QwenAgent(BaseAIAgent):
 class LiscoAgent(QwenAgent):
     def init_tools(self):
         self.tools = [pretty_print_python_object_tool]
+
+
+class HttpApiAgent(QwenAgent):
+    def init_tools(self):
+        manager = HttpAPIManager()
+        manager.load_openapi_json("/opt/test/openapi.json", "/", "http://localhost:18000/metric")
+        for api in manager.apis:
+            self.tools.append(api.to_structured_tool())
