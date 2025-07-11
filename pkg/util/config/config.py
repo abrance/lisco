@@ -6,6 +6,42 @@ from pydantic import BaseModel, Field
 from pkg.constant.config import DEFAULT_CONFIG_PATH
 
 
+class Server(BaseModel):
+    host: str = Field(..., description="服务器地址")
+    port: int = Field(..., description="服务器端口")
+
+
+class LLM(BaseModel):
+    base_url: str = Field(..., description="LLM 服务器地址")
+    model: str = Field(..., description="LLM 模型")
+    api_key: str = Field(..., description="LLM API Key")
+    app_code: Optional[str] = Field(description="LLM 应用编码")
+
+
+class Spider(BaseModel):
+    jm_session_id: Optional[str] = Field(description="JM Session ID")
+
+
+class DB(BaseModel):
+    host: str = Field(..., description="数据库地址")
+    port: int = Field(..., description="数据库端口")
+    user: str = Field(..., description="数据库用户名")
+    password: str = Field(..., description="数据库密码")
+    db_name: str = Field(..., description="数据库名称")
+
+
+class Storage(BaseModel):
+    image_storage_path: str = Field(..., description="图片存储路径")
+
+
+class LiscoConfig(BaseModel):
+    server: Server = Field(..., description="服务器配置")
+    llm: LLM = Field(..., description="LLM 配置")
+    spider: Spider = Field(..., description="爬虫配置")
+    db: DB = Field(..., description="数据库配置")
+    storage: Storage = Field(..., description="存储配置")
+
+
 class ConfigManager:
     def __init__(self):
         self.config = None
@@ -57,44 +93,10 @@ class ConfigManager:
             ),
         )
 
-    def get_config(self):
+    def get_config(self) -> LiscoConfig:
+        if not self.config:
+            raise RuntimeError("Config not initialized")
         return self.config
-
-
-class Server(BaseModel):
-    host: str = Field(..., description="服务器地址")
-    port: int = Field(..., description="服务器端口")
-
-
-class LLM(BaseModel):
-    base_url: str = Field(..., description="LLM 服务器地址")
-    model: str = Field(..., description="LLM 模型")
-    api_key: str = Field(..., description="LLM API Key")
-    app_code: Optional[str] = Field(description="LLM 应用编码")
-
-
-class Spider(BaseModel):
-    jm_session_id: Optional[str] = Field(description="JM Session ID")
-
-
-class DB(BaseModel):
-    host: str = Field(..., description="数据库地址")
-    port: int = Field(..., description="数据库端口")
-    user: str = Field(..., description="数据库用户名")
-    password: str = Field(..., description="数据库密码")
-    db_name: str = Field(..., description="数据库名称")
-
-
-class Storage(BaseModel):
-    image_storage_path: str = Field(..., description="图片存储路径")
-
-
-class LiscoConfig(BaseModel):
-    server: Server = Field(..., description="服务器配置")
-    llm: LLM = Field(..., description="LLM 配置")
-    spider: Spider = Field(..., description="爬虫配置")
-    db: DB = Field(..., description="数据库配置")
-    storage: Storage = Field(..., description="存储配置")
 
 
 config_manager = ConfigManager()
