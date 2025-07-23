@@ -49,6 +49,10 @@ class BaseAIAgent:
         )
 
     def init_agent(self):
+        if self.llm is None:
+            raise ValueError("LLM instance (self.llm) is not initialized.")
+        if self.prompt_template is None:
+            raise ValueError("Prompt template (self.prompt_template) is not initialized.")
         self.agent = create_tool_calling_agent(
             llm=self.llm,
             tools=self.tools,
@@ -68,6 +72,8 @@ class BaseAIAgent:
         )
 
     def init_agent_executor(self):
+        if not self.agent:
+            raise ValueError("Agent (self.agent) is not initialized.")
         self.agent_executor = AgentExecutor(
             agent=self.agent, tools=self.tools, verbose=True
         )
@@ -107,12 +113,18 @@ class QwenAgent(BaseAIAgent):
         self.tools = [s]
 
     def invoke(self, query):
+        if self.agent_executor is None:
+            raise ValueError("Agent executor (self.agent_executor) is not initialized.")
         return self.agent_executor.invoke(query)
 
     def stream(self, query):
+        if self.agent_executor is None:
+            raise ValueError("Agent executor (self.agent_executor) is not initialized.")
         return self.agent_executor.stream(query)
 
     async def astream(self, query):
+        if self.agent_executor is None:
+            raise ValueError("Agent executor (self.agent_executor) is not initialized.")
         async for chunk in self.agent_executor.astream(query):
             yield chunk
 
