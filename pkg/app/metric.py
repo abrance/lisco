@@ -16,28 +16,6 @@ metric_app_server = MetricAppServer()
 metric_app = metric_app_server.get_app()
 
 
-@metric_app.get(
-    path="/",
-    summary="展示应用内部指标",
-    description="获取应用内部指标接口，可以接收一个可选的'size'参数来展示如何处理查询参数。",
-    tags=["Metric"],
-    response_description="""
-response data json schema:
-{
-    "Hello": "World, metric",
-}    
-    """
-)
-def read_root(
-        size: Optional[int] = Query(3, description="一个可选的整数参数，用于演示如何处理查询参数", title=None)
-):
-    if size is not None:
-        return {"Hello": "World, metric", "size": size}
-    else:
-        return {"Hello": "World, metric"}
-
-
-
 class MetricResponse(BaseModel):
     data: Dict[str, str] = Field(description="指标键值对")
 
