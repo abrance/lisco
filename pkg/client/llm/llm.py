@@ -1,13 +1,12 @@
 from enum import Enum
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import StructuredTool
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-
 from pydantic import BaseModel, Field
 
-from pkg.client.llm.api_tool import HttpAPI, HttpFunction, Function, Parameters, ArgProperty, HttpAPIManager
+from pkg.client.llm.api_tool import HttpAPIManager
 from pkg.client.llm.tool import pretty_print_python_object_tool
 from pkg.util.config.config import config_manager
 
@@ -52,7 +51,9 @@ class BaseAIAgent:
         if self.llm is None:
             raise ValueError("LLM instance (self.llm) is not initialized.")
         if self.prompt_template is None:
-            raise ValueError("Prompt template (self.prompt_template) is not initialized.")
+            raise ValueError(
+                "Prompt template (self.prompt_template) is not initialized."
+            )
         self.agent = create_tool_calling_agent(
             llm=self.llm,
             tools=self.tools,
@@ -137,6 +138,8 @@ class LiscoAgent(QwenAgent):
 class HttpApiAgent(QwenAgent):
     def init_tools(self):
         manager = HttpAPIManager()
-        manager.load_openapi_json("/opt/test/openapi.json", "/", "http://localhost:18000/metric")
+        manager.load_openapi_json(
+            "/opt/test/openapi.json", "/", "http://localhost:18000/metric"
+        )
         for api in manager.apis:
             self.tools.append(api.to_structured_tool())
