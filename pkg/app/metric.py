@@ -1,5 +1,4 @@
-import json
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 from fastapi import Query
 from pydantic import BaseModel, Field
@@ -30,14 +29,16 @@ class MetricResponse(BaseModel):
     response_model=MetricResponse,
 )
 def read_root(
-        size: Optional[int] = Query(3, description="一个可选的整数参数，用于演示如何处理查询参数", title=None)
+    size: Optional[int] = Query(
+        3, description="一个可选的整数参数，用于演示如何处理查询参数", title=None
+    )
 ):
-    data= {
+    data = {
         "CPUUsage": "10%",
         "MemoryUsage": "20%",
         "DiskUsage": "30%",
         "NetworkUsage": "40%",
-        "BatteryUsage": "90%"
+        "BatteryUsage": "90%",
     }
 
     # 根据 size 返回  size 个数据

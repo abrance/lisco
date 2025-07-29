@@ -60,7 +60,9 @@ class ConfigManager:
             base_url = self.config_parser.get("llm", "base_url")
             model = self.config_parser.get("llm", "model")
             app_code = self.config_parser.get("llm", "app_code", fallback=None)
-            jm_session_id = self.config_parser.get("spider", "jm_session_id", fallback=None)
+            jm_session_id = self.config_parser.get(
+                "spider", "jm_session_id", fallback=None
+            )
             db_host = self.config_parser.get("db", "host")
             db_port = self.config_parser.getint("db", "port")
             db_user = self.config_parser.get("db", "user")
@@ -78,9 +80,7 @@ class ConfigManager:
                 model=model,
                 app_code=app_code,
             ),
-            spider=Spider(
-                jm_session_id=jm_session_id
-            ),
+            spider=Spider(jm_session_id=jm_session_id),
             db=DB(
                 host=db_host,
                 port=db_port,
@@ -88,9 +88,7 @@ class ConfigManager:
                 password=db_password,
                 db_name=db_name,
             ),
-            storage=Storage(
-                image_storage_path=image_storage_path
-            ),
+            storage=Storage(image_storage_path=image_storage_path),
         )
 
     def get_config(self) -> LiscoConfig:
